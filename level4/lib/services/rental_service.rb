@@ -22,8 +22,9 @@ class RentalService
     @rentals.map do |rental| 
       car = @cars[rental['car_id']]
       rental_price = rental_price(car: car, rental: rental)
+      owner_part = (rental_price * (1 - COMMISSION_RATE)).round(half: :down)
       commission = detailled_commission(rental_price: rental_price, rental: rental)
-      { id: rental['id'], price: rental_price, commission: commission }
+      { id: rental['id'], price: rental_price, owner_part: owner_part, commission: commission }
     end
   end
 
