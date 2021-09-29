@@ -30,10 +30,14 @@ class ActionPresenterService
     ]
   end
 
+  # @param who [String]
+  # @param amount [Integer]
   def add_credit(who:, amout:)
     { 'who': who, 'type': 'credit', 'amount': amout }
   end
 
+  # @param who [String]
+  # @param amount [Integer]
   def add_debit(who:, amout:)
     { 'who': who, 'type': 'debit', 'amount': amout }
   end
