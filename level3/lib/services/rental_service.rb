@@ -4,9 +4,11 @@
 #
 # Compute rental prices
 class RentalService
-  FIRST_DISCOUNT = 0.9
-  SECOND_DISCOUNT = 0.7
-  THIRD_DISCOUNT = 0.5
+  FIRST_DISCOUNT = 0.9.freeze
+  SECOND_DISCOUNT = 0.7.freeze
+  THIRD_DISCOUNT = 0.5.freeze
+  COMMISSION_RATE = 0.3.freeze
+  ASSISTANCE_PRICE = 100.freeze
 
   # @param input_file [String]
   def initialize(input_file)
@@ -19,12 +21,18 @@ class RentalService
   def call
     @rentals.map do |rental| 
       car = @cars[rental['car_id']]
-      { id: rental['id'], price: rental_price(car: car, rental: rental) }
+      rental_price = rental_price(car: car, rental: rental)
+      commission = detailled_commission(rental_price: rental_price, rental: rental)
+      { id: rental['id'], price: rental_price, commission: commission }
     end
   end
 
   private
 
+  # @return [Integer] the rental duration in days
+  def rental_duration(rental)
+    (Date.parse(rental['end_date']) - Date.parse(rental['start_date'])).to_i + 1
+  end
 
   # @param car [Hash]
   # @param rental [Hash]
@@ -45,7 +53,7 @@ class RentalService
   # @param rental [Hash]
   # @return [Integer]
   def duration_price(car:, rental:)
-    rental_duration = (Date.parse(rental['end_date']) - Date.parse(rental['start_date'])).to_i + 1
+    rental_duration = rental_duration(rental)
     price_factor = case rental_duration 
       when 1
         1
@@ -57,5 +65,16 @@ class RentalService
         1 + FIRST_DISCOUNT*3 + SECOND_DISCOUNT*6 + THIRD_DISCOUNT*(rental_duration-10)
     end
     (car['price_per_day'] * price_factor).round(half: :up) 
+  end
+
+  # @param rental_price [Integer]
+  # @param rental [Hash]
+  # @return [Hash]
+  def detailled_commission(rental_price:, rental:)
+    full_commission = rental_price * COMMISSION_RATE
+    assistance_fee = rental_duration(rental) * ASSISTANCE_PRICE
+    insurance_fee = (full_commission/2).round(half: :down)
+    drivy_fee =  (full_commission - assistance_fee - insurance_fee).round(half: :up)
+    { 'insurance_fee': insurance_fee, 'assistance_fee': assistance_fee, 'drivy_fee': drivy_fee }
   end
 end
