@@ -6,8 +6,11 @@
 
 class Rental
   FIRST_DISCOUNT = 0.9.freeze
+  FIRST_DISCOUNT_START = 1.freeze
   SECOND_DISCOUNT = 0.7.freeze
+  SECOND_DISCOUNT_START = 5.freeze
   THIRD_DISCOUNT = 0.5.freeze
+  THIRD_DISCOUNT_START = 11.freeze
   COMMISSION_RATE = 0.3.freeze
   ASSISTANCE_PRICE = 100.freeze
 
@@ -55,16 +58,21 @@ class Rental
 
   # @return [Integer]
   def duration_price
-    price_factor = case duration 
-      when 1
-        1
-      when 2..4
-        1 + FIRST_DISCOUNT*(duration-1)
-      when 5..10
-        1 + FIRST_DISCOUNT*3 + SECOND_DISCOUNT*(duration-4)
-      when 10..Float::INFINITY
-        1 + FIRST_DISCOUNT*3 + SECOND_DISCOUNT*6 + THIRD_DISCOUNT*(duration-10)
-    end
+    price_factor = rental_day_in_range(1..FIRST_DISCOUNT_START - 1) + 
+      FIRST_DISCOUNT * rental_day_in_range(FIRST_DISCOUNT_START..SECOND_DISCOUNT_START - 1) + 
+        SECOND_DISCOUNT * rental_day_in_range(SECOND_DISCOUNT_START..THIRD_DISCOUNT_START - 1) +
+          THIRD_DISCOUNT * rental_day_in_range(THIRD_DISCOUNT_START..Float::INFINITY) 
+
     (car.price_per_day * price_factor).round(half: :up) 
+  end
+
+  # @return [Integer]
+  def rental_day_in_range(range)
+    if range.end == Float::INFINITY
+      days = @duration - range.begin + 1
+      days.positive? ? days : 0
+    else
+      range.to_a.intersection((0..@duration).to_a).size
+    end
   end
 end
