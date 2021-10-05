@@ -11,8 +11,6 @@ class Rental
   SECOND_DISCOUNT_START = 5.freeze
   THIRD_DISCOUNT = 0.5.freeze
   THIRD_DISCOUNT_START = 11.freeze
-  COMMISSION_RATE = 0.3.freeze
-  ASSISTANCE_PRICE = 100.freeze
 
   attr_reader :car, :duration, :distance
   
